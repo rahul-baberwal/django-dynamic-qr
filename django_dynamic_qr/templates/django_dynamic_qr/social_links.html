@@ -1,0 +1,47 @@
+{% extends "django_dynamic_qr/base.html" %}
+{% block title %}{{ data.title|default:"Links" }}{% endblock %}
+{% block extra_style %}
+<style>
+  .profile-header { text-align:center; padding:32px 0 20px; }
+  .profile-avatar { width:88px; height:88px; border-radius:50%; object-fit:cover; border:3px solid var(--border); margin:0 auto 14px; display:block; }
+  .profile-avatar-placeholder { width:88px; height:88px; border-radius:50%; background:linear-gradient(135deg,var(--accent),#ec4899); display:flex; align-items:center; justify-content:center; font-size:32px; font-weight:700; color:#fff; margin:0 auto 14px; }
+  .profile-title { font-size:20px; font-weight:700; }
+  .profile-bio { color:var(--text-muted); font-size:14px; margin-top:8px; line-height:1.6; }
+  .link-btn { display:flex; align-items:center; gap:14px; padding:16px 20px; background:var(--surface); border:1.5px solid var(--border); border-radius:12px; color:var(--text); font-size:15px; font-weight:500; margin-bottom:10px; transition:background .15s,border-color .15s,transform .1s; }
+  .link-btn:hover { background:var(--surface2); border-color:var(--accent); transform:translateY(-1px); text-decoration:none; color:var(--text); }
+  .link-icon { font-size:20px; width:28px; text-align:center; flex-shrink:0; }
+  .link-label { flex:1; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="profile-header">
+  {% if data.avatar_url %}
+    <img src="{{ data.avatar_url }}" alt="Avatar" class="profile-avatar" />
+  {% else %}
+    <div class="profile-avatar-placeholder">{{ data.title|first|upper }}</div>
+  {% endif %}
+  <div class="profile-title">{{ data.title }}</div>
+  {% if data.bio %}<div class="profile-bio">{{ data.bio }}</div>{% endif %}
+</div>
+
+{% for link in data.links %}
+<a href="{{ link.url }}" target="_blank" class="link-btn">
+  <span class="link-icon">
+    {% if link.platform == "instagram" %}📷
+    {% elif link.platform == "twitter" %}🐦
+    {% elif link.platform == "facebook" %}📘
+    {% elif link.platform == "linkedin" %}💼
+    {% elif link.platform == "youtube" %}▶️
+    {% elif link.platform == "tiktok" %}🎵
+    {% elif link.platform == "github" %}🐙
+    {% elif link.platform == "telegram" %}✈️
+    {% elif link.platform == "whatsapp" %}💬
+    {% elif link.platform == "email" %}✉️
+    {% else %}🔗
+    {% endif %}
+  </span>
+  <span class="link-label">{{ link.label|default:link.platform|title }}</span>
+  <span style="color:var(--text-muted);">→</span>
+</a>
+{% endfor %}
+{% endblock %}

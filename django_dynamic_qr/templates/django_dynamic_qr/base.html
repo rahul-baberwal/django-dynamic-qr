@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}QR Page{% endblock %}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f0f0f; --surface: #1a1a1a; --surface2: #242424;
+      --border: #2e2e2e; --accent: #6366f1; --accent-light: #818cf8;
+      --text: #f1f1f1; --text-muted: #9ca3af; --radius: 14px;
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    body { background:var(--bg); color:var(--text); font-family:var(--font); min-height:100vh; display:flex; flex-direction:column; align-items:center; }
+    a { color:var(--accent-light); text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    .container { width:100%; max-width:480px; padding:32px 20px 60px; }
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:28px; margin-bottom:16px; }
+    .btn { display:block; width:100%; padding:14px 20px; border-radius:10px; font-size:15px; font-weight:600; cursor:pointer; border:none; transition:opacity .15s,transform .1s; text-align:center; }
+    .btn:hover { opacity:.88; transform:translateY(-1px); }
+    .btn-primary { background:var(--accent); color:#fff; }
+    .btn-outline { background:transparent; border:1.5px solid var(--border); color:var(--text); }
+    .badge { display:inline-block; padding:3px 10px; border-radius:999px; font-size:11px; font-weight:700; background:var(--accent); color:#fff; margin-bottom:8px; }
+    footer { margin-top:auto; padding:20px; font-size:12px; color:var(--text-muted); text-align:center; }
+  </style>
+  {% block extra_style %}{% endblock %}
+</head>
+<body>
+  <div class="container">{% block content %}{% endblock %}</div>
+  <footer>Powered by django-dynamic-qr</footer>
+</body>
+</html>

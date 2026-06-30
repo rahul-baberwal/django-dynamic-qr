@@ -1,0 +1,46 @@
+from setuptools import setup, find_packages
+
+setup(
+    name="django-dynamic-qr",
+    version="1.0.0",
+    description="Full-featured dynamic QR code package for Django — 14 types, analytics, access control, REST API",
+    long_description=open("README.md", encoding="utf-8").read(),
+    long_description_content_type="text/markdown",
+    author="Your Name",
+    author_email="you@example.com",
+    url="https://github.com/yourname/django-dynamic-qr",
+    license="MIT",
+    packages=find_packages(exclude=["tests*", "example*"]),
+    include_package_data=True,
+    python_requires=">=3.10",
+    install_requires=[
+        "Django>=4.2",
+        "qrcode[pil]>=7.4",
+        "Pillow>=10.0",
+        "segno>=1.6",
+        "user-agents>=2.2",
+        "requests>=2.28",
+        "openpyxl>=3.1",
+    ],
+    extras_require={
+        "api": ["djangorestframework>=3.14"],
+        "celery": ["celery>=5.3"],
+        "maxmind": ["geoip2>=4.7"],
+        "dev": [
+            "pytest>=7.4",
+            "pytest-django>=4.7",
+            "factory-boy>=3.3",
+            "coverage>=7.3",
+        ],
+    },
+    classifiers=[
+        "Framework :: Django",
+        "Framework :: Django :: 4.2",
+        "Framework :: Django :: 5.0",
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+        "Topic :: Internet :: WWW/HTTP",
+    ],
+    keywords="django qr code dynamic qrcode analytics redirect",
+)

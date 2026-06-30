@@ -1,0 +1,58 @@
+{% extends "django_dynamic_qr/base.html" %}
+{% block title %}{{ data.first_name }} {{ data.last_name }}{% endblock %}
+{% block extra_style %}
+<style>
+  .avatar { width:96px; height:96px; border-radius:50%; object-fit:cover; border:3px solid var(--border); margin:0 auto 16px; display:block; }
+  .avatar-placeholder { width:96px; height:96px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:700; color:#fff; margin:0 auto 16px; }
+  .name { font-size:24px; font-weight:700; text-align:center; }
+  .title { color:var(--text-muted); text-align:center; margin-top:4px; }
+  .info-row { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--border); }
+  .info-row:last-child { border-bottom:none; }
+  .info-icon { font-size:18px; width:24px; text-align:center; }
+  .social-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(100px,1fr)); gap:10px; margin-top:8px; }
+  .social-btn { display:flex; flex-direction:column; align-items:center; gap:6px; padding:14px 8px; background:var(--surface2); border-radius:10px; color:var(--text); font-size:12px; text-align:center; border:1px solid var(--border); transition:background .15s; }
+  .social-btn:hover { background:var(--border); text-decoration:none; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="card" style="text-align:center;padding-top:36px;">
+  {% if data.photo_url %}
+    <img src="{{ data.photo_url }}" alt="Photo" class="avatar" />
+  {% else %}
+    <div class="avatar-placeholder">{{ data.first_name|first|upper }}{{ data.last_name|first|upper }}</div>
+  {% endif %}
+  <div class="name">{{ data.first_name }} {{ data.last_name }}</div>
+  {% if data.title %}<div class="title">{{ data.title }}{% if data.company %} · {{ data.company }}{% endif %}</div>{% endif %}
+  {% if data.bio %}<p style="color:var(--text-muted);margin-top:12px;font-size:14px;line-height:1.6;">{{ data.bio }}</p>{% endif %}
+</div>
+
+{% if data.phone or data.email or data.website or data.address %}
+<div class="card">
+  {% if data.phone %}<div class="info-row"><span class="info-icon">📞</span><a href="tel:{{ data.phone }}">{{ data.phone }}</a></div>{% endif %}
+  {% if data.email %}<div class="info-row"><span class="info-icon">✉️</span><a href="mailto:{{ data.email }}">{{ data.email }}</a></div>{% endif %}
+  {% if data.website %}<div class="info-row"><span class="info-icon">🌐</span><a href="{{ data.website }}" target="_blank">{{ data.website }}</a></div>{% endif %}
+  {% if data.address %}<div class="info-row"><span class="info-icon">📍</span><span>{{ data.address }}</span></div>{% endif %}
+</div>
+{% endif %}
+
+{% if data.socials %}
+<div class="card">
+  <div style="font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:12px;">SOCIAL</div>
+  <div class="social-grid">
+    {% for platform, url in data.socials.items %}
+    <a href="{{ url }}" target="_blank" class="social-btn">
+      <span style="font-size:22px;">
+        {% if platform == "instagram" %}📷{% elif platform == "twitter" %}🐦{% elif platform == "linkedin" %}💼{% elif platform == "youtube" %}▶️{% elif platform == "github" %}🐙{% else %}🔗{% endif %}
+      </span>
+      {{ platform|title }}
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<a href="data:text/vcard;charset=utf-8,BEGIN%3AVCARD%0AVERSION%3A3.0%0AFN%3A{{ data.first_name }}%20{{ data.last_name }}%0ATEL%3A{{ data.phone }}%0AEMAIL%3A{{ data.email }}%0AEND%3AVCARD"
+   download="{{ data.first_name }}_{{ data.last_name }}.vcf" class="btn btn-primary">
+  💾 Save Contact
+</a>
+{% endblock %}

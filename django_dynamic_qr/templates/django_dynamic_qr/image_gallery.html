@@ -1,0 +1,33 @@
+{% extends "django_dynamic_qr/base.html" %}
+{% block title %}{{ data.title|default:"Gallery" }}{% endblock %}
+{% block extra_style %}
+<style>
+  .gallery { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:20px; }
+  .gallery img { width:100%; aspect-ratio:1; object-fit:cover; border-radius:10px; cursor:pointer; transition:opacity .15s; }
+  .gallery img:hover { opacity:.85; }
+  .caption { font-size:12px; color:var(--text-muted); margin-top:4px; text-align:center; }
+  #lightbox { display:none; position:fixed; inset:0; background:#000c; align-items:center; justify-content:center; z-index:999; }
+  #lightbox.open { display:flex; }
+  #lightbox img { max-width:92vw; max-height:88vh; border-radius:10px; }
+</style>
+{% endblock %}
+{% block content %}
+<h1 style="font-size:22px;font-weight:700;padding-top:32px;">{{ data.title|default:"Gallery" }}</h1>
+<div class="gallery">
+  {% for img in data.images %}
+  <div>
+    <img src="{{ img.url }}" alt="{{ img.caption }}" onclick="openLightbox('{{ img.url }}')" />
+    {% if img.caption %}<div class="caption">{{ img.caption }}</div>{% endif %}
+  </div>
+  {% endfor %}
+</div>
+<div id="lightbox" onclick="this.classList.remove('open')">
+  <img id="lb-img" src="" alt="Full size" />
+</div>
+<script>
+function openLightbox(url) {
+  document.getElementById('lb-img').src = url;
+  document.getElementById('lightbox').classList.add('open');
+}
+</script>
+{% endblock %}

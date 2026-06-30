@@ -1,0 +1,4 @@
+recursive-include django_dynamic_qr/templates *
+recursive-include django_dynamic_qr/static *
+include README.md
+include LICENSE

@@ -1,0 +1,60 @@
+{% extends "django_dynamic_qr/base.html" %}
+{% block title %}{{ data.restaurant_name }} — Menu{% endblock %}
+{% block extra_style %}
+<style>
+  .restaurant-header { text-align:center; padding:24px 0 8px; }
+  .restaurant-logo { width:72px; height:72px; border-radius:50%; object-fit:cover; margin:0 auto 12px; display:block; border:2px solid var(--border); }
+  .restaurant-name { font-size:22px; font-weight:700; }
+  .category-title { font-size:13px; font-weight:700; letter-spacing:.08em; color:var(--accent-light); text-transform:uppercase; padding:20px 0 10px; border-bottom:1px solid var(--border); margin-bottom:12px; }
+  .menu-item { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; padding:14px 0; border-bottom:1px solid var(--border); }
+  .menu-item:last-child { border-bottom:none; }
+  .item-info { flex:1; }
+  .item-name { font-weight:600; font-size:15px; }
+  .item-desc { font-size:13px; color:var(--text-muted); margin-top:4px; line-height:1.5; }
+  .item-img { width:72px; height:72px; border-radius:8px; object-fit:cover; flex-shrink:0; }
+  .item-price { font-weight:700; color:var(--accent-light); white-space:nowrap; margin-top:4px; }
+  .category-nav { display:flex; gap:8px; overflow-x:auto; padding:12px 0; scrollbar-width:none; }
+  .category-nav::-webkit-scrollbar { display:none; }
+  .cat-btn { padding:6px 16px; border-radius:999px; background:var(--surface2); border:1px solid var(--border); color:var(--text); font-size:13px; white-space:nowrap; cursor:pointer; transition:background .15s; }
+  .cat-btn.active, .cat-btn:hover { background:var(--accent); border-color:var(--accent); color:#fff; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="restaurant-header">
+  {% if data.logo_url %}<img src="{{ data.logo_url }}" alt="Logo" class="restaurant-logo" />{% endif %}
+  <div class="restaurant-name">{{ data.restaurant_name }}</div>
+  {% if data.tagline %}<div style="color:var(--text-muted);font-size:14px;margin-top:4px;">{{ data.tagline }}</div>{% endif %}
+</div>
+
+{% if data.categories %}
+<div class="category-nav">
+  {% for cat in data.categories %}
+  <button class="cat-btn{% if forloop.first %} active{% endif %}" onclick="scrollToSection('cat-{{ forloop.counter }}',this)">{{ cat.name }}</button>
+  {% endfor %}
+</div>
+
+{% for cat in data.categories %}
+<div id="cat-{{ forloop.counter }}">
+  <div class="category-title">{{ cat.name }}</div>
+  {% for item in cat.items %}
+  <div class="menu-item">
+    <div class="item-info">
+      <div class="item-name">{{ item.name }}</div>
+      {% if item.description %}<div class="item-desc">{{ item.description }}</div>{% endif %}
+      {% if item.price %}<div class="item-price">{{ item.price }}</div>{% endif %}
+    </div>
+    {% if item.image_url %}<img src="{{ item.image_url }}" alt="{{ item.name }}" class="item-img" />{% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endfor %}
+{% endif %}
+
+<script>
+function scrollToSection(id, btn) {
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).scrollIntoView({behavior:'smooth', block:'start'});
+}
+</script>
+{% endblock %}

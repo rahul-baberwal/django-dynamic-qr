@@ -1,0 +1,15 @@
+{% extends "django_dynamic_qr/base.html" %}
+{% block title %}{{ data.title|default:"Links" }}{% endblock %}
+{% block content %}
+<div style="padding:32px 0 20px;text-align:center;">
+  <h1 style="font-size:22px;font-weight:700;">{{ data.title }}</h1>
+  {% if data.description %}<p style="color:var(--text-muted);margin-top:8px;font-size:14px;">{{ data.description }}</p>{% endif %}
+</div>
+{% for link in data.links %}
+<a href="{{ link.url }}" target="_blank" style="display:flex;align-items:center;gap:14px;padding:16px 20px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-size:15px;font-weight:500;margin-bottom:10px;transition:background .15s;text-decoration:none;">
+  {% if link.icon %}<span style="font-size:20px;">{{ link.icon }}</span>{% endif %}
+  <span style="flex:1;">{{ link.label }}</span>
+  <span style="color:var(--text-muted);">→</span>
+</a>
+{% endfor %}
+{% endblock %}
