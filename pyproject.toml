@@ -9,7 +9,7 @@ description = "Full-featured dynamic QR code package for Django — 14 types, an
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
-authors = [{name = "Your Name", email = "you@example.com"}]
+authors = [{name = "Rahul Baberwal", email = "rahulbaberwal3@gmail.com"}]
 keywords = ["django", "qr", "qrcode", "dynamic", "analytics", "redirect"]
 classifiers = [
     "Framework :: Django",
@@ -37,8 +37,8 @@ maxmind = ["geoip2>=4.7"]
 dev = ["pytest>=7.4", "pytest-django>=4.7", "factory-boy>=3.3", "coverage>=7.3"]
 
 [project.urls]
-Homepage = "https://github.com/yourname/django-dynamic-qr"
-Repository = "https://github.com/yourname/django-dynamic-qr"
+Homepage = "https://rahulbaberwal.com"
+Repository = "https://github.com/rahul-baberwal/django-dynamic-qr"
 
 [tool.setuptools.packages.find]
 exclude = ["tests*", "example*"]

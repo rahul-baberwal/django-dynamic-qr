@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>django-dynamic-qr · Documentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0c0f; --surface:#111317; --surface-2:#16181d; --surface-3:#1c1f26;
+  --border:#23262d; --border-soft:#1a1c22;
+  --text:#e8e9ec; --text-dim:#9aa0ab; --text-faint:#5e6470;
+  --accent:#7c5cff; --accent-soft:#7c5cff22; --accent-text:#b3a1ff;
+  --green:#3ddc97; --amber:#ffb454; --pink:#ff6b9d; --blue:#5ec2ff;
+  --code-bg:#0e1014;
+  --radius:10px; --radius-lg:14px;
+  --font-sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,monospace;
+  --sidebar-w:272px; --toc-w:220px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg); color:var(--text); font-family:var(--font-sans);
+  font-size:15px; line-height:1.65; -webkit-font-smoothing:antialiased;
+}
+a{color:inherit; text-decoration:none;}
+::selection{background:var(--accent-soft); color:#fff;}
+
+/* ---------- TOP BAR ---------- */
+.topbar{
+  position:fixed; top:0; left:0; right:0; height:56px; z-index:100;
+  background:rgba(11,12,15,0.85); backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border-soft);
+  display:flex; align-items:center; padding:0 20px; gap:16px;
+}
+.topbar-brand{display:flex; align-items:center; gap:10px; font-weight:700; font-size:15px; min-width:var(--sidebar-w); flex-shrink:0;}
+.topbar-logo{
+  width:28px; height:28px; border-radius:7px;
+  background:linear-gradient(135deg,var(--accent),#5b3df5);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  box-shadow:0 0 0 1px #ffffff14, 0 4px 12px -2px #7c5cff55;
+}
+.topbar-logo svg{width:16px;height:16px;}
+.topbar-search{
+  flex:1; max-width:420px; height:36px; border-radius:8px;
+  background:var(--surface-2); border:1px solid var(--border);
+  display:flex; align-items:center; gap:8px; padding:0 12px;
+  color:var(--text-faint); font-size:13px; cursor:pointer; transition:border-color .15s;
+}
+.topbar-search:hover{border-color:#33363f;}
+.topbar-search kbd{
+  margin-left:auto; font-family:var(--font-mono); font-size:11px;
+  background:var(--surface-3); border:1px solid var(--border); border-radius:4px;
+  padding:2px 6px; color:var(--text-faint);
+}
+.topbar-right{display:flex; align-items:center; gap:18px; margin-left:auto; flex-shrink:0;}
+.topbar-link{font-size:13px; color:var(--text-dim); display:flex; align-items:center; gap:6px; transition:color .15s;}
+.topbar-link:hover{color:var(--text);}
+.topbar-link svg{width:15px;height:15px;}
+.btn-ghost{
+  font-size:13px; font-weight:600; padding:7px 14px; border-radius:7px;
+  border:1px solid var(--border); color:var(--text); transition:background .15s,border-color .15s;
+}
+.btn-ghost:hover{background:var(--surface-2); border-color:#33363f;}
+
+/* ---------- LAYOUT ---------- */
+.shell{display:flex; padding-top:56px; max-width:1440px; margin:0 auto;}
+.sidebar{
+  width:var(--sidebar-w); flex-shrink:0; position:fixed; top:56px; bottom:0; left:50%;
+  transform:translateX(calc(-720px));
+  overflow-y:auto; padding:24px 14px 60px; border-right:1px solid var(--border-soft);
+}
+.sidebar::-webkit-scrollbar{width:6px;}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border); border-radius:3px;}
+
+.nav-group{margin-bottom:22px;}
+.nav-group-title{
+  font-size:11px; font-weight:700; letter-spacing:.07em; text-transform:uppercase;
+  color:var(--text-faint); padding:0 10px 8px;
+}
+.nav-item{
+  display:flex; align-items:center; gap:9px; padding:7px 10px; border-radius:7px;
+  font-size:13.5px; color:var(--text-dim); cursor:pointer; transition:background .12s,color .12s;
+  position:relative;
+}
+.nav-item svg{width:15px; height:15px; flex-shrink:0; opacity:.75;}
+.nav-item:hover{background:var(--surface-2); color:var(--text);}
+.nav-item.active{background:var(--accent-soft); color:var(--accent-text); font-weight:600;}
+.nav-item.active svg{opacity:1;}
+.nav-item.active::before{
+  content:''; position:absolute; left:-15px; top:50%; transform:translateY(-50%);
+  width:3px; height:16px; background:var(--accent); border-radius:0 3px 3px 0;
+}
+
+/* ---------- MAIN CONTENT ---------- */
+.main{
+  flex:1; min-width:0; padding:48px 56px 120px; margin-left:var(--sidebar-w);
+  max-width:840px;
+}
+.page{display:none;}
+.page.active{display:block; animation:fadein .25s ease;}
+@keyframes fadein{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+.eyebrow{
+  font-family:var(--font-mono); font-size:12px; font-weight:600; color:var(--accent-text);
+  letter-spacing:.04em; margin-bottom:10px; display:flex; align-items:center; gap:8px;
+}
+h1.page-title{font-size:34px; font-weight:800; letter-spacing:-0.02em; margin-bottom:12px; line-height:1.2;}
+.page-desc{font-size:16px; color:var(--text-dim); margin-bottom:36px; max-width:640px; line-height:1.6;}
+
+h2{font-size:22px; font-weight:700; letter-spacing:-0.01em; margin:44px 0 14px; scroll-margin-top:76px;}
+h3{font-size:17px; font-weight:700; margin:28px 0 10px; scroll-margin-top:76px;}
+p{margin-bottom:14px; color:var(--text-dim);}
+p code, li code{font-family:var(--font-mono); font-size:0.86em; background:var(--surface-3); border:1px solid var(--border); border-radius:5px; padding:1.5px 6px; color:var(--accent-text);}
+strong{color:var(--text); font-weight:600;}
+ul,ol{margin:0 0 16px 0; padding-left:22px; color:var(--text-dim);}
+li{margin-bottom:6px;}
+hr{border:none; border-top:1px solid var(--border-soft); margin:40px 0;}
+
+/* callouts */
+.callout{
+  display:flex; gap:12px; padding:14px 16px; border-radius:10px; margin:18px 0;
+  border:1px solid var(--border); background:var(--surface);
+}
+.callout svg{width:18px;height:18px; flex-shrink:0; margin-top:1px;}
+.callout-body{font-size:13.5px; color:var(--text-dim); line-height:1.6;}
+.callout-body strong{display:block; color:var(--text); margin-bottom:2px; font-size:13.5px;}
+.callout.tip{border-color:#3ddc9733; background:#3ddc9710;}
+.callout.tip svg{color:var(--green);}
+.callout.warn{border-color:#ffb45433; background:#ffb45410;}
+.callout.warn svg{color:var(--amber);}
+.callout.info{border-color:#5ec2ff33; background:#5ec2ff10;}
+.callout.info svg{color:var(--blue);}
+
+/* code blocks */
+.code-block{
+  background:var(--code-bg); border:1px solid var(--border); border-radius:10px;
+  margin:16px 0; overflow:hidden;
+}
+.code-block-head{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:9px 14px; border-bottom:1px solid var(--border-soft);
+  font-family:var(--font-mono); font-size:11.5px; color:var(--text-faint);
+}
+.code-block-head .copy{cursor:pointer; color:var(--text-faint); transition:color .15s; display:flex; align-items:center; gap:5px;}
+.code-block-head .copy:hover{color:var(--text);}
+.code-block-head .copy svg{width:13px;height:13px;}
+.code-block pre{padding:16px; overflow-x:auto; font-family:var(--font-mono); font-size:12.8px; line-height:1.7;}
+.code-block code{font-family:inherit; color:#d4d7dd; background:none; border:none; padding:0;}
+.tok-kw{color:#ff6b9d;} .tok-str{color:#3ddc97;} .tok-com{color:#5e6470;} .tok-fn{color:#5ec2ff;} .tok-num{color:#ffb454;} .tok-cls{color:#b3a1ff;}
+
+/* tables */
+.table-wrap{overflow-x:auto; margin:18px 0; border:1px solid var(--border); border-radius:10px;}
+table{width:100%; border-collapse:collapse; font-size:13px;}
+th{text-align:left; padding:10px 14px; background:var(--surface-2); color:var(--text-dim); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.03em; border-bottom:1px solid var(--border);}
+td{padding:10px 14px; border-bottom:1px solid var(--border-soft); color:var(--text-dim);}
+tr:last-child td{border-bottom:none;}
+td code{white-space:nowrap;}
+td:first-child{color:var(--text); font-weight:500;}
+
+/* cards grid */
+.card-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin:20px 0;}
+.card{
+  border:1px solid var(--border); border-radius:12px; padding:18px; background:var(--surface);
+  transition:border-color .15s, transform .15s; cursor:default;
+}
+.card:hover{border-color:#3a3e48; transform:translateY(-2px);}
+.card-icon{width:34px; height:34px; border-radius:8px; background:var(--accent-soft); display:flex; align-items:center; justify-content:center; margin-bottom:12px;}
+.card-icon svg{width:18px; height:18px; color:var(--accent-text);}
+.card-title{font-size:14.5px; font-weight:700; margin-bottom:5px;}
+.card-desc{font-size:12.8px; color:var(--text-dim); line-height:1.55;}
+
+/* type grid (QR types) */
+.type-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; margin:18px 0;}
+.type-pill{
+  border:1px solid var(--border); border-radius:9px; padding:12px 14px; background:var(--surface);
+  display:flex; flex-direction:column; gap:6px;
+}
+.type-pill .tag{font-family:var(--font-mono); font-size:11px; color:var(--accent-text); background:var(--accent-soft); display:inline-block; padding:1px 7px; border-radius:5px; width:fit-content;}
+.type-pill .name{font-size:13px; font-weight:600;}
+
+/* badges */
+.badge{display:inline-flex; align-items:center; gap:4px; font-family:var(--font-mono); font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:5px; letter-spacing:.02em;}
+.badge.get{background:#3ddc9718; color:var(--green); border:1px solid #3ddc9740;}
+.badge.post{background:#5ec2ff18; color:var(--blue); border:1px solid #5ec2ff40;}
+.badge.patch{background:#ffb45418; color:var(--amber); border:1px solid #ffb45440;}
+.badge.delete{background:#ff6b9d18; color:var(--pink); border:1px solid #ff6b9d40;}
+.endpoint{display:flex; align-items:center; gap:10px; font-family:var(--font-mono); font-size:13px; margin-bottom:6px;}
+
+/* pager */
+.pager{display:flex; justify-content:space-between; margin-top:56px; padding-top:24px; border-top:1px solid var(--border-soft); gap:16px;}
+.pager-link{flex:1; border:1px solid var(--border); border-radius:10px; padding:14px 16px; transition:border-color .15s, background .15s;}
+.pager-link:hover{border-color:#3a3e48; background:var(--surface);}
+.pager-link.next{text-align:right; margin-left:auto;}
+.pager-label{font-size:11px; color:var(--text-faint); margin-bottom:4px;}
+.pager-title{font-size:13.5px; font-weight:600; color:var(--text);}
+
+/* TOC (right side) */
+.toc{
+  width:var(--toc-w); flex-shrink:0; position:fixed; top:56px; right:calc(50% - 720px + (1440px - 1440px));
+  right: calc((100vw - 1440px)/2 + 16px);
+  bottom:0; overflow-y:auto; padding:32px 8px 60px 18px; font-size:12.5px;
+}
+.toc-title{font-size:11px; font-weight:700; color:var(--text-faint); text-transform:uppercase; letter-spacing:.06em; margin-bottom:10px;}
+.toc a{display:block; padding:5px 0; color:var(--text-faint); border-left:2px solid var(--border-soft); padding-left:12px; transition:color .15s, border-color .15s;}
+.toc a:hover{color:var(--text-dim);}
+.toc a.active{color:var(--accent-text); border-left-color:var(--accent);}
+
+/* ---------- HOME HERO ---------- */
+.hero{padding:8px 0 28px;}
+.hero-badges{display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap;}
+.hero-badge{font-family:var(--font-mono); font-size:11px; padding:4px 10px; border-radius:6px; border:1px solid var(--border); color:var(--text-dim); background:var(--surface);}
+.hero h1{font-size:40px; font-weight:800; letter-spacing:-0.025em; line-height:1.15; margin-bottom:16px;}
+.hero h1 span{background:linear-gradient(135deg,var(--accent-text),var(--blue)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;}
+.hero-sub{font-size:16.5px; color:var(--text-dim); max-width:600px; margin-bottom:28px; line-height:1.65;}
+.hero-ctas{display:flex; gap:10px; margin-bottom:8px;}
+.btn-primary{
+  background:var(--accent); color:#fff; font-weight:600; font-size:13.5px; padding:11px 20px;
+  border-radius:9px; display:flex; align-items:center; gap:8px; transition:transform .12s, box-shadow .12s;
+  box-shadow:0 4px 14px -4px #7c5cff66;
+}
+.btn-primary:hover{transform:translateY(-1px); box-shadow:0 6px 18px -4px #7c5cff88;}
+
+/* author card */
+.author-card{
+  display:flex; align-items:center; gap:16px; border:1px solid var(--border); border-radius:14px;
+  padding:18px 20px; margin:40px 0; background:linear-gradient(135deg,var(--surface) 0%, var(--surface-2) 100%);
+}
+.author-avatar{width:56px; height:56px; border-radius:50%; object-fit:cover; border:2px solid var(--border); flex-shrink:0;}
+.author-info{flex:1; min-width:0;}
+.author-name{font-size:15px; font-weight:700; margin-bottom:2px;}
+.author-role{font-size:12.5px; color:var(--text-dim); margin-bottom:10px;}
+.author-links{display:flex; gap:8px; flex-wrap:wrap;}
+.author-link{
+  display:flex; align-items:center; gap:6px; font-size:12px; font-weight:500; color:var(--text-dim);
+  border:1px solid var(--border); padding:5px 10px; border-radius:7px; transition:border-color .15s, color .15s, background .15s;
+}
+.author-link:hover{color:var(--text); border-color:#3a3e48; background:var(--surface-3);}
+.author-link svg{width:13px; height:13px;}
+
+/* footer */
+.docs-footer{margin-top:56px; padding-top:24px; border-top:1px solid var(--border-soft); font-size:12.5px; color:var(--text-faint); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+.docs-footer a{color:var(--text-dim); transition:color .15s;}
+.docs-footer a:hover{color:var(--text);}
+
+/* responsive */
+@media (max-width:1300px){
+  .toc{display:none;}
+}
+@media (max-width:980px){
+  .sidebar{display:none;}
+  .main{margin-left:0; padding:32px 24px 100px; max-width:100%;}
+  .topbar-brand{min-width:auto;}
+  .card-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ TOP BAR ============ -->
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-logo">
+      <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1.5" stroke="white" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1.5" stroke="white" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1.5" stroke="white" stroke-width="2"/><path d="M14 14h3v3h-3zM18 14h3v7M14 18h3v3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <span>django-dynamic-qr</span>
+  </div>
+  <div class="topbar-search" onclick="document.getElementById('searchInput').focus()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    <input id="searchInput" placeholder="Search documentation..." style="background:none;border:none;outline:none;color:var(--text);font-size:13px;font-family:inherit;flex:1;" />
+    <kbd>⌘K</kbd>
+  </div>
+  <div class="topbar-right">
+    <a class="topbar-link" href="https://github.com/rahul-baberwal" target="_blank">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.57.1.78-.25.78-.55 0-.27-.01-1.16-.02-2.1-3.2.7-3.88-1.36-3.88-1.36-.52-1.33-1.28-1.69-1.28-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.03 1.75 2.7 1.25 3.36.95.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.58.24 2.75.12 3.04.74.8 1.18 1.83 1.18 3.09 0 4.43-2.7 5.41-5.27 5.69.42.36.78 1.08.78 2.18 0 1.58-.01 2.84-.01 3.23 0 .31.21.66.79.55A10.52 10.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+      GitHub
+    </a>
+    <a class="btn-ghost" href="#installation" onclick="nav('installation')">Get Started</a>
+  </div>
+</div>
+
+<div class="shell">
+  <!-- ============ SIDEBAR ============ -->
+  <div class="sidebar" id="sidebar">
+
+    <div class="nav-group">
+      <div class="nav-group-title">Get Started</div>
+      <div class="nav-item" data-page="introduction" onclick="nav('introduction')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        Introduction
+      </div>
+      <div class="nav-item" data-page="installation" onclick="nav('installation')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
+        Installation
+      </div>
+      <div class="nav-item" data-page="quickstart" onclick="nav('quickstart')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        Quickstart
+      </div>
+      <div class="nav-item" data-page="configuration" onclick="nav('configuration')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 005 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        Configuration
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">Core Concepts</div>
+      <div class="nav-item" data-page="architecture" onclick="nav('architecture')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Architecture
+      </div>
+      <div class="nav-item" data-page="models" onclick="nav('models')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0018 0V5"/><path d="M3 12a9 3 0 0018 0"/></svg>
+        Models
+      </div>
+      <div class="nav-item" data-page="qr-types" onclick="nav('qr-types')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/><path d="M21 16h-3a2 2 0 00-2 2v3M21 21v.01M14 16h.01M14 21h.01M21 12v3"/></svg>
+        QR Types
+      </div>
+      <div class="nav-item" data-page="design-engine" onclick="nav('design-engine')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="19" cy="13" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="10.5" cy="19.5" r="2.5"/></svg>
+        Design Engine
+      </div>
+      <div class="nav-item" data-page="analytics" onclick="nav('analytics')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16l4-7 4 4 5-9"/></svg>
+        Analytics
+      </div>
+      <div class="nav-item" data-page="access-control" onclick="nav('access-control')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        Access Control
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">Guides</div>
+      <div class="nav-item" data-page="bulk-operations" onclick="nav('bulk-operations')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8v13H3V8M1 3h22v5H1zM10 12h4"/></svg>
+        Bulk Operations
+      </div>
+      <div class="nav-item" data-page="admin" onclick="nav('admin')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        Django Admin
+      </div>
+      <div class="nav-item" data-page="custom-types" onclick="nav('custom-types')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        Custom QR Types
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">API Reference</div>
+      <div class="nav-item" data-page="api-overview" onclick="nav('api-overview')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
+        Overview
+      </div>
+      <div class="nav-item" data-page="api-qr-codes" onclick="nav('api-qr-codes')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M9 9h6v6H9z"/></svg>
+        QR Codes
+      </div>
+      <div class="nav-item" data-page="api-analytics" onclick="nav('api-analytics')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+        Analytics
+      </div>
+      <div class="nav-item" data-page="api-bulk" onclick="nav('api-bulk')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        Bulk
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">Resources</div>
+      <div class="nav-item" data-page="cli" onclick="nav('cli')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 17l6-6-6-6M12 19h8"/></svg>
+        CLI Commands
+      </div>
+      <div class="nav-item" data-page="faq" onclick="nav('faq')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01"/></svg>
+        FAQ
+      </div>
+      <div class="nav-item" data-page="about" onclick="nav('about')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0116 0v1"/></svg>
+        Creator
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main">
+
+    <!-- INTRODUCTION -->
+    <div class="page active" id="page-introduction">
+      <div class="hero">
+        <div class="hero-badges">
+          <span class="hero-badge">v1.0.0</span>
+          <span class="hero-badge">MIT License</span>
+          <span class="hero-badge">Django 4.2+</span>
+          <span class="hero-badge">Python 3.10+</span>
+        </div>
+        <h1>The complete <span>dynamic QR</span><br/>toolkit for Django</h1>
+        <p class="hero-sub">A self-hosted, production-ready package that gives you everything a commercial QR platform offers — 14 content types, short-URL redirects, scan analytics, access control, and a REST API — fully owned inside your own Django project.</p>
+        <div class="hero-ctas">
+          <a class="btn-primary" onclick="nav('installation')">
+            Get Started
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+          <a class="btn-ghost" href="https://github.com/rahul-baberwal" target="_blank" style="display:flex;align-items:center;">View on GitHub</a>
+        </div>
+      </div>
+
+      <h2 id="why">Why django-dynamic-qr</h2>
+      <p>Commercial QR platforms charge monthly fees to do something fundamentally simple: redirect a static-looking QR code through a short URL you control, then log who scanned it. This package gives you that entire feature set as plain Django models, views, and a REST API — no subscriptions, no vendor lock-in, no external dependency on uptime you don't control.</p>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/></svg></div>
+          <div class="card-title">14 QR Types</div>
+          <div class="card-desc">URL, vCard, vCard+, PDF, Menu, Social Links, WiFi, Email, SMS, WhatsApp, Image Gallery, Plain Text, Link List, App Store.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16l4-7 4 4 5-9"/></svg></div>
+          <div class="card-title">Built-in Analytics</div>
+          <div class="card-desc">Scan count, device, OS, browser, country &amp; city geolocation, daily trend charts, CSV/XLSX export.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>
+          <div class="card-title">Access Control</div>
+          <div class="card-desc">Password protection, daily scan limits, scheduled activation/expiry, and country allow-lists.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg></div>
+          <div class="card-title">REST API</div>
+          <div class="card-desc">Full Django REST Framework viewsets — create, update destinations dynamically, export, analyze, bulk import.</div>
+        </div>
+      </div>
+
+      <h2 id="how">How it works</h2>
+      <p>Every dynamic QR code encodes a short URL pointing back to your Django app — <code>/qr/&lt;slug&gt;/</code>. When scanned, that view runs access checks, logs the scan, then resolves to its destination. Because the printed QR pattern never changes, you can edit where it points to at any time.</p>
+
+      <div class="code-block">
+        <div class="code-block-head"><span>scan flow</span></div>
+        <pre><code><span class="tok-com"># Scan → short URL → access guard → scan log → destination</span>
+GET /qr/AbC123Xy/
+  → AccessGuard.check()        <span class="tok-com"># password, schedule, geo, scan limit</span>
+  → ScanLogger.log()           <span class="tok-com"># device, geo, referer</span>
+  → handler.respond(request)   <span class="tok-com"># redirect or landing page</span></code></pre>
+      </div>
+
+      <div class="callout tip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6M10 22h4M12 2a7 7 0 00-4 12.7V17h8v-2.3A7 7 0 0012 2z"/></svg>
+        <div class="callout-body"><strong>Free package, free forever</strong>Since this lives inside your own Django project, there are no per-QR pricing tiers or scan caps beyond what your own database can handle.</div>
+      </div>
+
+      <div class="pager">
+        <div></div>
+        <a class="pager-link next" onclick="nav('installation')"><div class="pager-label">Next</div><div class="pager-title">Installation →</div></a>
+      </div>
+    </div>
+
+    <!-- INSTALLATION -->
+    <div class="page" id="page-installation">
+      <div class="eyebrow">GET STARTED</div>
+      <h1 class="page-title">Installation</h1>
+      <p class="page-desc">Add django-dynamic-qr to an existing Django project in under five minutes.</p>
+
+      <h2 id="install-pip">1. Install the package</h2>
+      <div class="code-block">
+        <div class="code-block-head"><span>terminal</span><span class="copy" onclick="copyCode(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy</span></div>
+        <pre><code><span class="tok-com"># Core package</span>
+pip install django-dynamic-qr
+
+<span class="tok-com"># With REST API support</span>
+pip install django-dynamic-qr[api]
+
+<span class="tok-com"># With Celery async scan logging</span>
+pip install django-dynamic-qr[celery]</code></pre>
+      </div>
+
+      <h2 id="install-apps">2. Add to INSTALLED_APPS</h2>
+      <div class="code-block">
+        <div class="code-block-head"><span>settings.py</span><span class="copy" onclick="copyCode(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy</span></div>
+        <pre><code>INSTALLED_APPS = [
+    <span class="tok-com">...</span>
+    <span class="tok-str">"django_dynamic_qr"</span>,
+    <span class="tok-str">"rest_framework"</span>,  <span class="tok-com"># optional — only if using the REST API</span>
+]</code></pre>
+      </div>
+
+      <h2 id="install-urls">3. Mount the URLs</h2>
+      <div class="code-block">
+        <div class="code-block-head"><span>project/urls.py</span><span class="copy" onclick="copyCode(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy</span></div>
+        <pre><code><span class="tok-kw">from</span> django.urls <span class="tok-kw">import</span> path, include
+
+urlpatterns = [
+    <span class="tok-com">...</span>
+    path(<span class="tok-str">""</span>, include(<span class="tok-str">"django_dynamic_qr.urls"</span>)),
+]</code></pre>
+      </div>
+      <p>This mounts <code>/qr/&lt;slug&gt;/</code> for redirects, <code>/qr/&lt;slug&gt;/export/</code> for image downloads, and <code>/api/qr/...</code> for the REST API (if DRF is installed).</p>
+
+      <h2 id="install-migrate">4. Run migrations</h2>
+      <div class="code-block">
+        <div class="code-block-head"><span>terminal</span><span class="copy" onclick="copyCode(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy</span></div>
+        <pre><code>python manage.py migrate django_dynamic_qr</code></pre>
+      </div>
+
+      <div class="callout warn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>
+        <div class="callout-body"><strong>Media settings required</strong>Logo uploads need <code>MEDIA_URL</code> / <code>MEDIA_ROOT</code> configured, and your urls.py must serve media in development.</div>
+      </div>
+
+      <div class="pager">
+        <a class="pager-link" onclick="nav('introduction')"><div class="pager-label">Previous</div><div class="pager-title">← Introduction</div></a>
+        <a class="pager-link next" onclick="nav('quickstart')"><div class="pager-label">Next</div><div class="pager-title">Quickstart →</div></a>
+      </div>
+    </div>
+
+    <!-- QUICKSTART -->
+    <div class="page" id="page-quickstart">
+      <div class="eyebrow">GET STARTED</div>
+      <h1 class="page-title">Quickstart</h1>
+      <p class="page-desc">Create your first dynamic QR code and watch its destination update without reprinting anything.</p>
+
+      <h2 id="qs-create">Create a QR code</h2>
+      <div class="code-block">
+        <div class="code-block-head"><span>python shell</span><span class="copy" onclick="copyCode(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy</span></div>
+        <pre><code><span class="tok-kw">from</span> django_dynamic_qr.models <span class="tok-kw">import</span> QRCode
+
+qr = QRCode.objects.create(
+    user=request.user,
+    name=<span class="tok-str">"My Website"</span>,
+    qr_type=<span class="tok-str">"url"</span>,
+    type_data={<span class="tok-str">"url"</span>: <span class="tok-str">"https://example.com"</span>},
+    fg_color=<span class="tok-str">"#111111"</span>,
+    bg_color=<span class="tok-str">"#FFFFFF"</span>,
+)
+
+<span class="tok-fn">print</span>(qr.get_redirect_url())
+<span class="tok-com"># → https://yourdomain.com/qr/AbC123Xy/</span></code></pre>
+      </div>
+
+      <h2 id="qs-export">Export the image</h2>
+      <div class="code-block">
+        <div class="code-block-head"><span>python shell</span><span class="copy" onclick="copyCode(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy</span></div>
+        <pre><code><span class="tok-kw">from</span> django_dynamic_qr.engine.exporter <span class="tok-kw">import</span> export_qr_code
+
+png_bytes = export_qr_code(qr, fmt=<span class="tok-str">"png"</span>)
+svg_bytes = export_qr_code(qr, fmt=<span class="tok-str">"svg"</span>)</code></pre>
+      </div>
+      <p>Or fetch it directly via the built-in view:</p>
+      <div class="code-block">
+        <div class="code-block-head"><span>http</span></div>
+        <pre><code><span class="badge get">GET</span>  /qr/AbC123Xy/export/?fmt=svg</code></pre>
+      </div>
+
+      <h2 id="qs-update">Update the destination — no reprint needed</h2>
+      <p>This is the entire point of a dynamic QR code. The printed pattern, slug, and image stay byte-for-byte identical — only the database row changes.</p>
+      <div class="code-block">
+        <div class="code-block-head"><span>python shell</span><span class="copy" onclick="copyCode(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy</span></div>
+        <pre><code>qr.type_data = {<span class="tok-str">"url"</span>: <span class="tok-str">"https://example.com/new-page"</span>}
+qr.save()
+<span class="tok-com"># Anyone scanning the same printed code now lands on the new URL.</span></code></pre>
+      </div>
+
+      <div class="callout tip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6M10 22h4M12 2a7 7 0 00-4 12.7V17h8v-2.3A7 7 0 0012 2z"/></svg>
+        <div class="callout-body"><strong>That's the whole workflow</strong>Create once, print once, update forever. Continue to QR Types to see the full payload schema for each of the 14 supported types.</div>
+      </div>
+
+      <div class="pager">
+        <a class="pager-link" onclick="nav('installation')"><div class="pager-label">Previous</div><div class="pager-title">← Installation</div></a>
+        <a class="pager-link next" onclick="nav('configuration')"><div class="pager-label">Next</div><div class="pager-title">Configuration →</div></a>
+      </div>
+    </div>
+
+    <!-- CONFIGURATION -->
+    <div class="page" id="page-configuration">
+      <div class="eyebrow">GET STARTED</div>
+      <h1 class="page-title">Configuration</h1>
+      <p class="page-desc">All settings are optional with sane defaults — override only what you need in a single dict.</p>
+
+      <div class="code-block">
+        <div class="code-block-head"><span>settings.py</span><span class="copy" onclick="copyCode(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy</span></div>
+        <pre><code>DJANGO_DYNAMIC_QR = {
+    <span class="tok-str">"SHORT_URL_BASE"</span>: <span class="tok-str">"https://yourdomain.com"</span>,
+    <span class="tok-str">"DEFAULT_ERROR_CORRECTION"</span>: <span class="tok-str">"H"</span>,
+    <span class="tok-str">"DEFAULT_BOX_SIZE"</span>: <span class="tok-num">10</span>,
+    <span class="tok-str">"DEFAULT_BORDER"</span>: <span class="tok-num">4</span>,
+    <span class="tok-str">"LOGO_MAX_RATIO"</span>: <span class="tok-num">0.25</span>,
+    <span class="tok-str">"SCAN_LOG_ASYNC"</span>: <span class="tok-kw">False</span>,
+    <span class="tok-str">"GEO_BACKEND"</span>: <span class="tok-str">"ip-api"</span>,
+    <span class="tok-str">"MAXMIND_DB_PATH"</span>: <span class="tok-kw">None</span>,
+    <span class="tok-str">"ENABLE_REST_API"</span>: <span class="tok-kw">True</span>,
+    <span class="tok-str">"UPLOAD_TO"</span>: <span class="tok-str">"qr_codes/"</span>,
+    <span class="tok-str">"LOGO_UPLOAD_TO"</span>: <span class="tok-str">"qr_logos/"</span>,
+}</code></pre>
+      </div>
+
+      <h2 id="config-ref">Settings reference</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Key</th><th>Default</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>SHORT_URL_BASE</td><td><code>""</code></td><td>Production domain used to build redirect URLs. Set this before deploying.</td></tr>
+            <tr><td>DEFAULT_ERROR_CORRECTION</td><td><code>"H"</code></td><td>L / M / Q / H — higher tolerates more logo overlay and damage.</td></tr>
+            <tr><td>DEFAULT_BOX_SIZE</td><td><code>10</code></td><td>Pixel size of each QR module in PNG output.</td></tr>
+            <tr><td>LOGO_MAX_RATIO</td><td><code>0.25</code></td><td>Maximum proportion of the QR area a center logo may occupy.</td></tr>
+            <tr><td>SCAN_LOG_ASYNC</td><td><code>False</code></td><td>Offload scan logging to a Celery task instead of inline writes.</td></tr>
+            <tr><td>GEO_BACKEND</td><td><code>"ip-api"</code></td><td><code>ip-api</code> · <code>maxmind</code> · <code>None</code> — IP geolocation provider for scan logs.</td></tr>
+            <tr><td>ENABLE_REST_API</td><td><code>True</code></td><td>Mount DRF viewsets at <code>/api/qr/</code> when djangorestframework is installed.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pager">
+        <a class="pager-link" onclick="nav('quickstart')"><div class="pager-label">Previous</div><div class="pager-title">← Quickstart</div></a>
+        <a class="pager-link next" onclick="nav('architecture')"><div class="pager-label">Next</div><div class="pager-title">Architecture →</div></a>
+      </div>
+    </div>
+
+    <!-- ARCHITECTURE -->
+    <div class="page" id="page-architecture">
+      <div class="eyebrow">CORE CONCEPTS</div>
+      <h1 class="page-title">Architecture</h1>
+      <p class="page-desc">A modular package structure where every QR content type is a pluggable handler.</p>
+
+      <div class="code-block">
+        <div class="code-block-head"><span>package layout</span></div>
+        <pre><code>django_dynamic_qr/
+├── models/          <span class="tok-com"># QRCode, ScanLog, Folder</span>
+├── types/           <span class="tok-com"># 14 type handler classes + registry</span>
+├── engine/          <span class="tok-com"># QR matrix generation, exporters</span>
+├── analytics/        <span class="tok-com"># geo lookup, scan logger, CSV/XLSX export</span>
+├── access/          <span class="tok-com"># password, schedule, scan-limit, geo guards</span>
+├── bulk/            <span class="tok-com"># CSV importer, ZIP exporter</span>
+├── api/             <span class="tok-com"># DRF serializers + viewsets</span>
+├── views/            <span class="tok-com"># redirect view, export view</span>
+└── management/       <span class="tok-com"># generate_qr command</span></code></pre>
+      </div>
+
+      <h2 id="arch-flow">Request lifecycle</h2>
+      <p>Every scan passes through three stages before resolving to its final content:</p>
+      <ol>
+        <li><strong>Access Guard</strong> — checks password, schedule, daily scan limit, and geo allow-list, in that order.</li>
+        <li><strong>Scan Logger</strong> — records IP-derived geo, device, OS, browser, and referer (sync or async via Celery).</li>
+        <li><strong>Type Handler</strong> — either issues an HTTP redirect (URL, PDF, WiFi) or renders a hosted landing page (vCard+, Menu, Social Links).</li>
+      </ol>
+
+      <h2 id="arch-handler">The handler pattern</h2>
+      <p>Every QR type is a subclass of <code>BaseQRType</code> registered in a central dict. This is the extension point used in <a onclick="nav('custom-types')" style="color:var(--accent-text);text-decoration:underline;">Custom QR Types</a>.</p>
+      <div class="code-block">
+        <div class="code-block-head"><span>types/base.py</span></div>
+        <pre><code><span class="tok-kw">class</span> <span class="tok-cls">BaseQRType</span>:
+    type_id: <span class="tok-fn">str</span> = <span class="tok-kw">None</span>
+    is_static: <span class="tok-fn">bool</span> = <span class="tok-kw">False</span>
+    has_landing_page: <span class="tok-fn">bool</span> = <span class="tok-kw">False</span>
+
+    <span class="tok-kw">def</span> <span class="tok-fn">get_destination</span>(self) -> <span class="tok-fn">str</span>: ...
+    <span class="tok-kw">def</span> <span class="tok-fn">to_qr_content</span>(self) -> <span class="tok-fn">str</span>: ...
+    <span class="tok-kw">def</span> <span class="tok-fn">respond</span>(self, request): ...</code></pre>
+      </div>
+
+      <div class="pager">
+        <a class="pager-link" onclick="nav('configuration')"><div class="pager-label">Previous</div><div class="pager-title">← Configuration</div></a>
+        <a class="pager-link next" onclick="nav('models')"><div class="pager-label">Next</div><div class="pager-title">Models →</div></a>
+      </div>
+    </div>
+
+    <!-- MODELS -->
+    <div class="page" id="page-models">
+      <div class="eyebrow">CORE CONCEPTS</div>
+      <h1 class="page-title">Models</h1>
+      <p class="page-desc">Three models drive the entire package: QRCode, ScanLog, and Folder.</p>
+
+      <h2 id="model-qrcode">QRCode</h2>
+      <p>The central model. Holds identity, design, type-specific JSON payload, and access-control fields.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>slug</td><td>SlugField</td><td>Auto-generated, URL-safe, unique — the printed QR content.</td></tr>
+            <tr><td>qr_type</td><td>CharField</td><td>One of the 14 registered type IDs.</td></tr>
+            <tr><td>type_data</td><td>JSONField</td><td>Per-type payload — see QR Types for schema.</td></tr>
+            <tr><td>fg_color / bg_color</td><td>CharField</td><td>Hex colors for the QR matrix.</td></tr>
+            <tr><td>logo</td><td>ImageField</td><td>Optional center logo overlay.</td></tr>
+            <tr><td>error_correction</td><td>CharField</td><td>L / M / Q / H.</td></tr>
+            <tr><td>password</td><td>CharField</td><td>Blank = no password gate.</td></tr>
+            <tr><td>scan_limit_day</td><td>PositiveIntegerField</td><td>Null = unlimited.</td></tr>
+            <tr><td>allowed_countries</td><td>JSONField</td><td>ISO 3166-1 alpha-2 list, e.g. <code>["IN","US"]</code>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 id="model-scanlog">ScanLog</h2>
+      <p>One row per scan, foreign-keyed to QRCode, indexed on <code>(qr_code, scanned_at)</code> and <code>country</code> for fast analytics queries.</p>
+      <div class="code-block">
+        <div class="code-block-head"><span>models/scan_log.py</span></div>
+        <pre><code>scanned_at, ip_address, country, city,
+device, os, browser, referer, user_agent</code></pre>
+      </div>
+
+      <h2 id="model-folder">Folder</h2>
+      <p>Simple per-user grouping with a color tag, used in the admin and API for organizing large QR collections.</p>
+
+      <div class="pager">
+        <a class="pager-link" onclick="nav('architecture')"><div class="pager-label">Previous</div><div class="pager-title">← Architecture</div></a>
+        <a class="pager-link next" onclick="nav('qr-types')"><div class="pager-label">Next</div><div class="pager-title">QR Types →</div></a>
+      </div>
+    </div>
+
+    <!-- QR TYPES -->
+    <div class="page" id="page-qr-types">
+      <div class="eyebrow">CORE CONCEPTS</div>
+      <h1 class="page-title">QR Types</h1>
+      <p class="page-desc">14 built-in content handlers, each with its own <code>type_data</code> payload schema.</p>
+
+      <div class="type-grid">
+        <div class="type-pill"><span class="tag">url</span><span class="name">URL</span></div>
+        <div class="type-pill"><span class="tag">vcard</span><span class="name">vCard</span></div>
+        <div class="type-pill"><span class="tag">vcard_plus</span><span class="name">vCard+</span></div>
+        <div class="type-pill"><span class="tag">pdf</span><span class="name">PDF</span></div>
+        <div class="type-pill"><span class="tag">menu</span><span class="name">Restaurant Menu</span></div>
+        <div class="type-pill"><span class="tag">social</span><span class="name">Social Links</span></div>
+        <div class="type-pill"><span class="tag">wifi</span><span class="name">WiFi</span></div>
+        <div class="type-pill"><span class="tag">email</span><span class="name">Email</span></div>
+        <div class="type-pill"><span class="tag">sms</span><span class="name">SMS</span></div>
+        <div class="type-pill"><span class="tag">whatsapp</span><span class="name">WhatsApp</span></div>
+        <div class="type-pill"><span class="tag">image</span><span class="name">Image Gallery</span></div>
+        <div class="type-pill"><span class="tag">text</span><span class="name">Plain Text</span></div>
+        <div class="type-pill"><span class="tag">link_list</span><span class="name">Link List</span></div>
+        <div class="type-pill"><span class="tag">app_store</span><span class="name">App Store</span></div>
+      </div>
+
+      <h2 id="types-table">Payload reference</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Type</th><th>type_data keys</th></tr></thead>
+          <tbody>
+            <tr><td>url</td><td><code>url</code></td></tr>
+            <tr><td>vcard</td><td><code>first_name, last_name, phone, email, company, title, address, website</code></td></tr>
+            <tr><td>vcard_plus</td><td>same as vcard + <code>photo_url, bio, socials</code></td></tr>
+            <tr><td>pdf</td><td><code>pdf_url, title</code></td></tr>
+            <tr><td>menu</td><td><code>restaurant_name, logo_url, categories[]</code></td></tr>
+            <tr><td>social</td><td><code>title, bio, avatar_url, links[]</code></td></tr>
+            <tr><td>wifi</td><td><code>ssid, password, security, hidden</code></td></tr>
+            <tr><td>email</td><td><code>to, subject, body</code></td></tr>
+            <tr><td>sms</td><td><code>phone, message</code></td></tr>
+            <tr><td>whatsapp</td><td><code>phone, message</code></td></tr>
+            <tr><td>image</td><td><code>title, images[]</code></td></tr>
+            <tr><td>text</td><td><code>text</code></td></tr>
+            <tr><td>link_list</td><td><code>title, description, links[]</code></td></tr>
+            <tr><td>app_store</td><td><code>ios_url, android_url, fallback_url</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 id="types-static">Static vs. dynamic types</h2>
+      <p>Most types encode a short URL and resolve server-side. A few — <strong>WiFi</strong>, <strong>Email</strong>, <strong>SMS</strong>, <strong>WhatsApp</strong>, <strong>Plain Text</strong> — are marked <code>is_static = True</code> and encode their payload directly into the QR matrix, since their content is meant to work fully offline.</p>
+
+      <div class="callout info">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        <div class="callout-body"><strong>vCard+, Menu, Social Links, Image Gallery, Link List</strong>render hosted landing pages instead of redirecting — these set <code>has_landing_page = True</code> on their handler.</div>
+      </div>
+
+      <div class="pager">
+        <a class="pager-link" onclick="nav('models')"><div class="pager-label">Previous</div><div class="pager-title">← Models</div></a>
+        <a class="pager-link next" onclick="nav('design-engine')"><div class="pager-label">Next</div><div class="pager-title">Design Engine →</div></a>
+      </div>
+    </div>
+
+    <!-- DESIGN ENGINE -->
+    <div class="page" id="page-design-engine">
+      <div class="eyebrow">CORE CONCEPTS</div>
+      <h1 class="page-title">Design Engine</h1>
+      <p class="page-desc">Custom colors, logo overlays, and multi-format export powered by <code>qrcode</code> and <code>segno</code>.</p>
+
+      <h2 id="design-export">Export formats</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Format</th><th>Engine</th><th>Use case</th></tr></thead>
+          <tbody>
+            <tr><td>PNG</td><td>qrcode + Pillow</td><td>Default, supports logo overlay.</td></tr>
+            <tr><td>SVG</td><td>segno</td><td>Infinitely scalable, ideal for print.</td></tr>
+            <tr><td>PDF</td><td>segno</td><td>Direct embed into print-ready documents.</td></tr>
+            <tr><td>EPS</td><td>segno</td><td>Professional print/publishing workflows.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 id="design-logo">Logo overlay</h2>
+      <p>Logos are centered and automatically scaled to <code>LOGO_MAX_RATIO</code> of the QR area (default 25%), paired with <code>H</code> error correction so the code stays scannable despite the overlay.</p>
+      <div class="code-block">
+        <div class="code-block-head"><span>engine/generator.py</span></div>
+        <pre><code><span class="tok-kw">def</span> <span class="tok-fn">generate_qr</span>(
+    content: <span class="tok-fn">str</span>,
+    fg_color: <span class="tok-fn">str</span> = <span class="tok-str">"#000000"</span>,
+    bg_color: <span class="tok-fn">str</span> = <span class="tok-str">"#FFFFFF"</span>,
+    logo_path: <span class="tok-fn">str</span> = <span class="tok-kw">None</span>,
+    fmt: <span class="tok-fn">str</span> = <span class="tok-str">"png"</span>,
+) -> <span class="tok-fn">bytes</span>: ...</code></pre>
+      </div>
+
+      <h2 id="design-ec">Error correction levels</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Level</th><th>Recovery</th><th>Recommended for</th></tr></thead>
+          <tbody>
+            <tr><td>L</td><td>~7%</td><td>Clean digital display, no logo.</td></tr>
+            <tr><td>M</td><td>~15%</td><td>General use.</td></tr>
+            <tr><td>Q</td><td>~25%</td><td>Print with minor wear expected.</td></tr>
+            <tr><td>H</td><td>~30%</td><td>Default — required for logo overlays.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pager">
+        <a class="pager-link" onclick="nav('qr-types')"><div class="pager-label">Previous</div><div class="pager-title">← QR Types</div></a>
+        <a class="pager-link next" onclick="nav('analytics')"><div class="pager-label">Next</div><div class="pager-title">Analytics →</div></a>
+      </div>
+    </div>
+
+    <!-- ANALYTICS -->
+    <div class="page" id="page-analytics">
+      <div class="eyebrow">CORE CONCEPTS</div>
+      <h1 class="page-title">Analytics</h1>
+      <p class="page-desc">Every scan is logged with device, geography, and referer data — exportable to CSV or XLSX.</p>
+
+      <h2 id="an-captured">What's captured per scan</h2>
+      <ul>
+        <li>Timestamp, IP address (used only for geo lookup, not stored raw beyond the field)</li>
+        <li>Country &amp; city via <code>ip-api</code> (free) or MaxMind GeoLite2 (self-hosted DB)</li>
+        <li>Device class — mobile / tablet / desktop, parsed via <code>user-agents</code></li>
+        <li>OS and browser family</li>
+        <li>HTTP referer, when present</li>
+      </ul>
+
+      <h2 id="an-async">Sync vs. async logging</h2>
+      <p>By default scans are logged inline on the request. Set <code>SCAN_LOG_ASYNC: True</code> with Celery configured to offload writes to a background task and keep redirects fast under load.</p>
+      <div class="code-block">
+        <div class="code-block-head"><span>tasks.py</span></div>
+        <pre><code><span class="tok-kw">@shared_task</span>(ignore_result=<span class="tok-kw">True</span>)
+<span class="tok-kw">def</span> <span class="tok-fn">log_scan_task</span>(qr_pk: <span class="tok-fn">int</span>, data: <span class="tok-fn">dict</span>):
+    qr = QRCode.objects.get(pk=qr_pk)
+    ScanLog.objects.create(qr_code=qr, **data)</code></pre>
+      </div>
+
+      <h2 id="an-export">Exporting scan logs</h2>
+      <div class="code-block">
+        <div class="code-block-head"><span>python shell</span><span class="copy" onclick="copyCode(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy</span></div>
+        <pre><code><span class="tok-kw">from</span> django_dynamic_qr.analytics.exporters <span class="tok-kw">import</span> export_scan_csv, export_scan_xlsx
+
+response = export_scan_csv(qr)    <span class="tok-com"># HttpResponse, CSV</span>
+response = export_scan_xlsx(qr)   <span class="tok-com"># HttpResponse, styled XLSX</span></code></pre>
+      </div>
+
+      <div class="pager">
+        <a class="pager-link" onclick="nav('design-engine')"><div class="pager-label">Previous</div><div class="pager-title">← Design Engine</div></a>
+        <a class="pager-link next" onclick="nav('access-control')"><div class="pager-label">Next</div><div class="pager-title">Access Control →</div></a>
+      </div>
+    </div>
+
+    <!-- ACCESS CONTROL -->
+    <div class="page" id="page-access-control">
+      <div class="eyebrow">CORE CONCEPTS</div>
+      <h1 class="page-title">Access Control</h1>
+      <p class="page-desc">Four independent guards run in sequence before a scan is logged or resolved.</p>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>
+          <div class="card-title">Password</div>
+          <div class="card-desc">Set <code>qr.password</code>. Shows an interstitial password page on scan.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+          <div class="card-title">Schedule</div>
+          <div class="card-desc"><code>active_from</code> / <code>active_until</code> datetimes gate availability.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16l4-7 4 4 5-9"/></svg></div>
+          <div class="card-title">Scan limit</div>
+          <div class="card-desc"><code>scan_limit_day</code> caps scans per calendar day, counted from ScanLog.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 010 20 15.3 15.3 0 010-20z"/></svg></div>
+          <div class="card-title">Geo fence</div>
+          <div class="card-desc"><code>allowed_countries</code> restricts access by IP-derived country code.</div>
+        </div>
+      </div>
+
+      <h2 id="ac-order">Evaluation order</h2>
+      <p>Guards run as: <strong>active</strong> → <strong>schedule</strong> → <strong>geo</strong> → <strong>scan limit</strong> → <strong>password</strong>. The first failing guard returns a dedicated denial page (e.g. <code>expired.html</code>, <code>scan_limit.html</code>) and halts the request before any scan is logged.</p>
+
+      <div class="code-block">
+        <div class="code-block-head"><span>access/guards.py</span></div>
+        <pre><code>qr.password = <span class="tok-str">"secret123"</span>
+qr.scan_limit_day = <span class="tok-num">500</span>
+qr.active_until = timezone.now() + timedelta(days=<span class="tok-num">30</span>)
+qr.allowed_countries = [<span class="tok-str">"IN"</span>, <span class="tok-str">"US"</span>, <span class="tok-str">"GB"</span>]
+qr.save()</code></pre>
+      </div>
+
+      <div class="pager">
+        <a class="pager-link" onclick="nav('analytics')"><div class="pager-label">Previous</div><div class="pager-title">← Analytics</div></a>
+        <a class="pager-link next" onclick="nav('bulk-operations')"><div class="pager-label">Next</div><div class="pager-title">Bulk Operations →</div></a>
+      </div>
+    </div>
+
+    <!-- BULK -->
+    <div class="page" id="page-bulk-operations">
+      <div class="eyebrow">GUIDES</div>
+      <h1 class="page-title">Bulk Operations</h1>
+      <p class="page-desc">Import QR codes from CSV, export selected sets as a ZIP archive.</p>
+
+      <h2 id="bulk-csv">CSV import</h2>
+      <p>Required columns: <code>name</code>, <code>qr_type</code>, and a <code>data</code> column containing a JSON string of the type payload.</p>
+      <div class="code-block">
+        <div class="code-block-head"><span>import.csv</span></div>
+        <pre><code>name,qr_type,data
+My Website,url,<span class="tok-str">"{""url"": ""https://example.com""}"</span>
+Office WiFi,wifi,<span class="tok-str">"{""ssid"": ""OfficeNet"", ""password"": ""pass123""}"</span></code></pre>
+      </div>
+      <div class="code-block">
+        <div class="code-block-head"><span>python shell</span></div>
+        <pre><code><span class="tok-kw">from</span> django_dynamic_qr.bulk <span class="tok-kw">import</span> import_from_csv
+
+created, errors = import_from_csv(csv_file, user=request.user)</code></pre>
+      </div>
+
+      <h2 id="bulk-zip">ZIP export</h2>
+      <div class="code-block">
+        <div class="code-block-head"><span>python shell</span></div>
+        <pre><code><span class="tok-kw">from</span> django_dynamic_qr.bulk <span class="tok-kw">import</span> export_zip
+
+response = export_zip(qr_codes, fmt=<span class="tok-str">"svg"</span>)</code></pre>
+      </div>
+
+      <div class="pager">
+        <a class="pager-link" onclick="nav('access-control')"><div class="pager-label">Previous</div><div class="pager-title">← Access Control</div></a>
+        <a class="pager-link next" onclick="nav('admin')"><div class="pager-label">Next</div><div class="pager-title">Django Admin →</div></a>
+      </div>
+    </div>
+
+    <!-- ADMIN -->
+    <div class="page" id="page-admin">
+      <div class="eyebrow">GUIDES</div>
+      <h1 class="page-title">Django Admin</h1>
+      <p class="page-desc">A fully wired admin interface with live previews and bulk actions out of the box.</p>
+
+      <h2 id="admin-features">Features</h2>
+      <ul>
+        <li>Inline live QR thumbnail preview rendered as base64 PNG</li>
+        <li>Inline scan log table per QR code (last 20 scans)</li>
+        <li>Bulk actions: export PNG/ZIP, export SVG ZIP, export scan CSV, activate/deactivate</li>
+        <li>Collapsible access-control fieldset to keep the form uncluttered</li>
+      </ul>
+
+      <div class="code-block">
+        <div class="code-block-head"><span>admin.py</span></div>
+        <pre><code><span class="tok-kw">@admin.register</span>(QRCode)
+<span class="tok-kw">class</span> <span class="tok-cls">QRCodeAdmin</span>(admin.ModelAdmin):
+    list_display = [<span class="tok-str">"name"</span>, <span class="tok-str">"qr_type"</span>, <span class="tok-str">"is_active"</span>, <span class="tok-str">"total_scans"</span>, <span class="tok-str">"qr_preview"</span>]
+    actions = [export_png, export_svg, export_scans_csv, activate_qr, deactivate_qr]
+    inlines = [ScanLogInline]</code></pre>
+      </div>
+
+      <div class="pager">
+        <a class="pager-link" onclick="nav('bulk-operations')"><div class="pager-label">Previous</div><div class="pager-title">← Bulk Operations</div></a>
+        <a class="pager-link next" onclick="nav('custom-types')"><div class="pager-label">Next</div><div class="pager-title">Custom QR Types →</div></a>
+      </div>
+    </div>
+
+    <!-- CUSTOM TYPES -->
+    <div class="page" id="page-custom-types">
+      <div class="eyebrow">GUIDES</div>
+      <h1 class="page-title">Custom QR Types</h1>
+      <p class="page-desc">Register your own handler class for content types not covered out of the box.</p>
+
+      <div class="code-block">
+        <div class="code-block-head"><span>myapp/qr_types.py</span><span class="copy" onclick="copyCode(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy</span></div>
+        <pre><code><span class="tok-kw">from</span> django_dynamic_qr.types.base <span class="tok-kw">import</span> BaseQRType
+<span class="tok-kw">from</span> django_dynamic_qr.types <span class="tok-kw">import</span> registry
+
+<span class="tok-kw">class</span> <span class="tok-cls">CalendarEventType</span>(BaseQRType):
+    type_id = <span class="tok-str">"calendar_event"</span>
+    is_static = <span class="tok-kw">True</span>
+
+    <span class="tok-kw">def</span> <span class="tok-fn">get_destination</span>(self):
+        d = self.data
+        <span class="tok-kw">return</span> <span class="tok-fn">f</span><span class="tok-str">"BEGIN:VEVENT\nSUMMARY:{d['title']}\nDTSTART:{d['start']}\nEND:VEVENT"</span>
+
+registry[<span class="tok-str">"calendar_event"</span>] = CalendarEventType</code></pre>
+      </div>
+      <p>Import this module inside your app's <code>AppConfig.ready()</code> so the registration runs at Django startup.</p>
+
+      <div class="pager">
+        <a class="pager-link" onclick="nav('admin')"><div class="pager-label">Previous</div><div class="pager-title">← Django Admin</div></a>
+        <a class="pager-link next" onclick="nav('api-overview')"><div class="pager-label">Next</div><div class="pager-title">API Overview →</div></a>
+      </div>
+    </div>
+
+    <!-- API OVERVIEW -->
+    <div class="page" id="page-api-overview">
+      <div class="eyebrow">API REFERENCE</div>
+      <h1 class="page-title">API Overview</h1>
+      <p class="page-desc">A full Django REST Framework viewset mounted at <code>/api/qr/</code>, requiring authentication.</p>
+
+      <h2 id="api-auth">Authentication</h2>
+      <p>Uses session or token authentication depending on your <code>REST_FRAMEWORK</code> settings. All endpoints are scoped to <code>request.user</code> — users only ever see their own QR codes.</p>
+
+      <h2 id="api-base">Base URL</h2>
+      <div class="code-block"><pre><code>https://yourdomain.com/api/qr/</code></pre></div>
+
+      <div class="pager">
+        <a class="pager-link" onclick="nav('custom-types')"><div class="pager-label">Previous</div><div class="pager-title">← Custom QR Types</div></a>
+        <a class="pager-link next" onclick="nav('api-qr-codes')"><div class="pager-label">Next</div><div class="pager-title">QR Codes →</div></a>
+      </div>
+    </div>
+
+    <!-- API QR CODES -->
+    <div class="page" id="page-api-qr-codes">
+      <div class="eyebrow">API REFERENCE</div>
+      <h1 class="page-title">QR Codes</h1>
+      <p class="page-desc">CRUD operations on QR code resources.</p>
+
+      <div class="endpoint"><span class="badge get">GET</span> /api/qr/</div>
+      <p>List all QR codes owned by the authenticated user. Supports <code>?folder=</code> and <code>?type=</code> query filters.</p>
+
+      <div class="endpoint"><span class="badge post">POST</span> /api/qr/</div>
+      <p>Create a new QR code.</p>
+      <div class="code-block">
+        <div class="code-block-head"><span>request body</span></div>
+        <pre><code>{
+  <span class="tok-str">"name"</span>: <span class="tok-str">"My Website"</span>,
+  <span class="tok-str">"qr_type"</span>: <span class="tok-str">"url"</span>,
+  <span class="tok-str">"type_data"</span>: { <span class="tok-str">"url"</span>: <span class="tok-str">"https://example.com"</span> },
+  <span class="tok-str">"fg_color"</span>: <span class="tok-str">"#111111"</span>
+}</code></pre>
+      </div>
+
+      <div class="endpoint"><span class="badge get">GET</span> /api/qr/&lt;id&gt;/</div>
+      <p>Retrieve a single QR code.</p>
+
+      <div class="endpoint"><span class="badge patch">PATCH</span> /api/qr/&lt;id&gt;/</div>
+      <p>Update fields — including <code>type_data</code> to change the redirect destination dynamically.</p>
+
+      <div class="endpoint"><span class="badge delete">DELETE</span> /api/qr/&lt;id&gt;/</div>
+      <p>Permanently remove a QR code and its associated scan logs.</p>
+
+      <div class="endpoint"><span class="badge get">GET</span> /api/qr/&lt;id&gt;/export/?fmt=png</div>
+      <p>Download the QR image. <code>fmt</code> accepts <code>png</code>, <code>svg</code>, <code>pdf</code>, <code>eps</code>.</p>
+
+      <div class="pager">
+        <a class="pager-link" onclick="nav('api-overview')"><div class="pager-label">Previous</div><div class="pager-title">← API Overview</div></a>
+        <a class="pager-link next" onclick="nav('api-analytics')"><div class="pager-label">Next</div><div class="pager-title">Analytics →</div></a>
+      </div>
+    </div>
+
+    <!-- API ANALYTICS -->
+    <div class="page" id="page-api-analytics">
+      <div class="eyebrow">API REFERENCE</div>
+      <h1 class="page-title">Analytics Endpoints</h1>
+      <p class="page-desc">Pull scan summaries and raw logs for a given QR code.</p>
+
+      <div class="endpoint"><span class="badge get">GET</span> /api/qr/&lt;id&gt;/analytics/</div>
+      <p>Returns total scans, today's scan count, top countries, top devices, and a 30-day daily trend.</p>
+      <div class="code-block">
+        <div class="code-block-head"><span>response</span></div>
+        <pre><code>{
+  <span class="tok-str">"total_scans"</span>: <span class="tok-num">1842</span>,
+  <span class="tok-str">"scans_today"</span>: <span class="tok-num">37</span>,
+  <span class="tok-str">"top_countries"</span>: [[<span class="tok-str">"IN"</span>, <span class="tok-num">1203</span>], [<span class="tok-str">"US"</span>, <span class="tok-num">410</span>]],
+  <span class="tok-str">"top_devices"</span>: [[<span class="tok-str">"mobile"</span>, <span class="tok-num">1601</span>], [<span class="tok-str">"desktop"</span>, <span class="tok-num">241</span>]],
+  <span class="tok-str">"daily_counts"</span>: [[<span class="tok-str">"2026-06-28"</span>, <span class="tok-num">52</span>], <span class="tok-com">...</span>]
+}</code></pre>
+      </div>
+
+      <div class="endpoint"><span class="badge get">GET</span> /api/qr/&lt;id&gt;/analytics/export/?fmt=csv</div>
+      <p>Download raw scan logs. <code>fmt</code> accepts <code>csv</code> or <code>xlsx</code>.</p>
+
+      <div class="pager">
+        <a class="pager-link" onclick="nav('api-qr-codes')"><div class="pager-label">Previous</div><div class="pager-title">← QR Codes</div></a>
+        <a class="pager-link next" onclick="nav('api-bulk')"><div class="pager-label">Next</div><div class="pager-title">Bulk →</div></a>
+      </div>
+    </div>
+
+    <!-- API BULK -->
+    <div class="page" id="page-api-bulk">
+      <div class="eyebrow">API REFERENCE</div>
+      <h1 class="page-title">Bulk Endpoints</h1>
+      <p class="page-desc">Import and export many QR codes in a single request.</p>
+
+      <div class="endpoint"><span class="badge post">POST</span> /api/qr/bulk-import/</div>
+      <p>Multipart upload with a <code>file</code> field containing a CSV. Returns <code>{"created": N, "errors": [...]}</code>.</p>
+
+      <div class="endpoint"><span class="badge get">GET</span> /api/qr/bulk-export/?fmt=png&amp;id=1&amp;id=2</div>
+      <p>Returns a ZIP of QR images for the given IDs (or all owned QR codes if no <code>id</code> params are passed).</p>
+
+      <div class="pager">
+        <a class="pager-link" onclick="nav('api-analytics')"><div class="pager-label">Previous</div><div class="pager-title">← Analytics</div></a>
+        <a class="pager-link next" onclick="nav('cli')"><div class="pager-label">Next</div><div class="pager-title">CLI Commands →</div></a>
+      </div>
+    </div>
+
+    <!-- CLI -->
+    <div class="page" id="page-cli">
+      <div class="eyebrow">RESOURCES</div>
+      <h1 class="page-title">CLI Commands</h1>
+      <p class="page-desc">Management commands for scripting and CI workflows.</p>
+
+      <h2 id="cli-generate">generate_qr</h2>
+      <p>Export a QR code image by slug, directly from the command line.</p>
+      <div class="code-block">
+        <div class="code-block-head"><span>terminal</span><span class="copy" onclick="copyCode(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy</span></div>
+        <pre><code>python manage.py generate_qr AbC123Xy --fmt svg --output qr.svg</code></pre>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Flag</th><th>Default</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>slug</code></td><td>—</td><td>Required positional argument.</td></tr>
+            <tr><td><code>--fmt</code></td><td>png</td><td>png / svg / pdf / eps</td></tr>
+            <tr><td><code>--output</code></td><td>stdout</td><td>File path to save to.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pager">
+        <a class="pager-link" onclick="nav('api-bulk')"><div class="pager-label">Previous</div><div class="pager-title">← Bulk</div></a>
+        <a class="pager-link next" onclick="nav('faq')"><div class="pager-label">Next</div><div class="pager-title">FAQ →</div></a>
+      </div>
+    </div>
+
+    <!-- FAQ -->
+    <div class="page" id="page-faq">
+      <div class="eyebrow">RESOURCES</div>
+      <h1 class="page-title">FAQ</h1>
+      <p class="page-desc">Common questions about django-dynamic-qr.</p>
+
+      <h2 id="faq-1">Does updating a QR code's destination require reprinting?</h2>
+      <p>No — that's the entire premise of a dynamic QR code. The printed pattern encodes a short URL, not the destination itself, so editing <code>type_data</code> changes where scans land instantly.</p>
+
+      <h2 id="faq-2">Can I self-host geolocation instead of using ip-api.com?</h2>
+      <p>Yes — set <code>GEO_BACKEND: "maxmind"</code> and point <code>MAXMIND_DB_PATH</code> at a local GeoLite2 City database file.</p>
+
+      <h2 id="faq-3">Is Celery required?</h2>
+      <p>No. It's entirely optional — install the <code>celery</code> extra and set <code>SCAN_LOG_ASYNC: True</code> only if you want scan logging offloaded from the request/response cycle.</p>
+
+      <h2 id="faq-4">Can I add my own QR content type?</h2>
+      <p>Yes — see <a onclick="nav('custom-types')" style="color:var(--accent-text);text-decoration:underline;">Custom QR Types</a>. Subclass <code>BaseQRType</code> and register it in the type registry.</p>
+
+      <h2 id="faq-5">What error correction level should I use with a logo?</h2>
+      <p><code>H</code> (≈30% recovery) is the default and recommended minimum when overlaying a center logo, since the logo physically obscures part of the matrix.</p>
+
+      <div class="pager">
+        <a class="pager-link" onclick="nav('cli')"><div class="pager-label">Previous</div><div class="pager-title">← CLI Commands</div></a>
+        <a class="pager-link next" onclick="nav('about')"><div class="pager-label">Next</div><div class="pager-title">Creator →</div></a>
+      </div>
+    </div>
+
+    <!-- ABOUT / CREATOR -->
+    <div class="page" id="page-about">
+      <div class="eyebrow">RESOURCES</div>
+      <h1 class="page-title">Creator</h1>
+      <p class="page-desc">django-dynamic-qr is built and maintained by Rahul Baberwal.</p>
+
+      <div class="author-card">
+        <img class="author-avatar" src="https://github.com/rahul-baberwal.png" alt="Rahul Baberwal" />
+        <div class="author-info">
+          <div class="author-name">Rahul Baberwal</div>
+          <div class="author-role">Python Backend Developer &amp; AI Engineer · Backend Developer at Groww Per Click</div>
+          <div class="author-links">
+            <a class="author-link" href="https://www.linkedin.com/in/rahul-baberwal/" target="_blank">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.03-1.85-3.03-1.85 0-2.14 1.45-2.14 2.94v5.66H9.36V9h3.41v1.56h.05c.47-.9 1.64-1.85 3.38-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 110-4.12 2.06 2.06 0 010 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>
+              LinkedIn
+            </a>
+            <a class="author-link" href="https://github.com/rahul-baberwal" target="_blank">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.57.1.78-.25.78-.55 0-.27-.01-1.16-.02-2.1-3.2.7-3.88-1.36-3.88-1.36-.52-1.33-1.28-1.69-1.28-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.03 1.75 2.7 1.25 3.36.95.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.58.24 2.75.12 3.04.74.8 1.18 1.83 1.18 3.09 0 4.43-2.7 5.41-5.27 5.69.42.36.78 1.08.78 2.18 0 1.58-.01 2.84-.01 3.23 0 .31.21.66.79.55A10.52 10.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+              GitHub
+            </a>
+            <a class="author-link" href="https://gitlab.com/rahul-baberwal" target="_blank">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.42l3.84-11.82H8.16L12 21.42z"/><path d="M12 21.42L8.16 9.6H1.4l3.06 9.4a1.1 1.1 0 00.4.52l7.14 1.9z" opacity=".7"/><path d="M5.46 9.6L3.96 4.93a.55.55 0 00-1.04 0L1.4 9.6h4.06z"/><path d="M12 21.42l3.84-11.82h6.76l-3.06 9.4a1.1 1.1 0 01-.4.52L12 21.42z" opacity=".7"/><path d="M18.54 9.6l1.5-4.67a.55.55 0 011.04 0l1.52 4.67h-4.06z"/></svg>
+              GitLab
+            </a>
+            <a class="author-link" href="https://rahulbaberwal.com" target="_blank">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 010 20 15.3 15.3 0 010-20z"/></svg>
+              Website
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <h2 id="about-bg">Background</h2>
+      <p>Rahul is an MSc Computer Science student at Mohta College, MGSU University Bikaner, with a Major in Artificial Intelligence from IIT Ropar. He currently works as a Backend Developer at Groww Per Click, building scalable backend systems and REST APIs in a fintech environment, after gaining a strong IT foundation through NIELIT's O Level certification.</p>
+
+      <h2 id="about-stack">Specializes in</h2>
+      <ul>
+        <li>Python, Django, Django REST Framework, FastAPI</li>
+        <li>PostgreSQL, Redis, Celery, Docker</li>
+        <li>Machine learning — scikit-learn, Pandas, NumPy, NLP/SBERT</li>
+      </ul>
+
+      <h2 id="about-other">Other open-source packages</h2>
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg></div>
+          <div class="card-title">django-var-cms</div>
+          <div class="card-desc">Role-based admin control panel and CMS registry with Tailwind CSS and glassmorphic styling.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+          <div class="card-title">django-meta-whatsapp</div>
+          <div class="card-desc">Full WhatsApp CRM and messaging platform — inbox, campaigns, webhooks, REST API.</div>
+        </div>
+      </div>
+
+      <div class="docs-footer">
+        <span>© 2026 Rahul Baberwal — django-dynamic-qr is MIT licensed.</span>
+        <span><a href="https://rahulbaberwal.com" target="_blank">rahulbaberwal.com</a></span>
+      </div>
+
+      <div class="pager">
+        <a class="pager-link" onclick="nav('faq')"><div class="pager-label">Previous</div><div class="pager-title">← FAQ</div></a>
+        <div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============ TOC (right) ============ -->
+  <div class="toc" id="tocPanel">
+    <div class="toc-title">On this page</div>
+    <div id="tocLinks"></div>
+  </div>
+</div>
+
+<script>
+const tocMap = {
+  introduction: [['why','Why django-dynamic-qr'],['how','How it works']],
+  installation: [['install-pip','1. Install'],['install-apps','2. INSTALLED_APPS'],['install-urls','3. Mount URLs'],['install-migrate','4. Migrate']],
+  quickstart: [['qs-create','Create a QR code'],['qs-export','Export the image'],['qs-update','Update destination']],
+  configuration: [['config-ref','Settings reference']],
+  architecture: [['arch-flow','Request lifecycle'],['arch-handler','The handler pattern']],
+  models: [['model-qrcode','QRCode'],['model-scanlog','ScanLog'],['model-folder','Folder']],
+  'qr-types': [['types-table','Payload reference'],['types-static','Static vs dynamic']],
+  'design-engine': [['design-export','Export formats'],['design-logo','Logo overlay'],['design-ec','Error correction']],
+  analytics: [['an-captured','What\\'s captured'],['an-async','Sync vs async'],['an-export','Exporting logs']],
+  'access-control': [['ac-order','Evaluation order']],
+  'bulk-operations': [['bulk-csv','CSV import'],['bulk-zip','ZIP export']],
+  admin: [['admin-features','Features']],
+  'custom-types': [],
+  'api-overview': [['api-auth','Authentication'],['api-base','Base URL']],
+  'api-qr-codes': [],
+  'api-analytics': [],
+  'api-bulk': [],
+  cli: [['cli-generate','generate_qr']],
+  faq: [['faq-1','Reprinting?'],['faq-2','Self-host geo'],['faq-3','Celery required?'],['faq-4','Custom types'],['faq-5','Error correction']],
+  about: [['about-bg','Background'],['about-stack','Specializes in'],['about-other','Other packages']]
+};
+
+function nav(pageId){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const page = document.getElementById('page-'+pageId);
+  if(page) page.classList.add('active');
+  const navItem = document.querySelector('.nav-item[data-page="'+pageId+'"]');
+  if(navItem) navItem.classList.add('active');
+  buildTOC(pageId);
+  window.scrollTo({top:0, behavior:'instant'});
+  history.replaceState(null, '', '#'+pageId);
+}
+
+function buildTOC(pageId){
+  const links = tocMap[pageId] || [];
+  const tocPanel = document.getElementById('tocPanel');
+  const tocLinks = document.getElementById('tocLinks');
+  if(links.length === 0){ tocPanel.style.visibility='hidden'; return; }
+  tocPanel.style.visibility='visible';
+  tocLinks.innerHTML = links.map(([id,label]) => `<a href="#${id}" onclick="event.stopPropagation()">${label}</a>`).join('');
+}
+
+function copyCode(el){
+  const block = el.closest('.code-block').querySelector('code');
+  navigator.clipboard.writeText(block.innerText).then(()=>{
+    const original = el.innerHTML;
+    el.innerHTML = 'Copied!';
+    setTimeout(()=>{ el.innerHTML = original; }, 1500);
+  });
+}
+
+// init from hash
+const initial = window.location.hash.replace('#','') || 'introduction';
+nav(tocMap.hasOwnProperty(initial) ? initial : 'introduction');
+
+// cmd+k focuses search
+document.addEventListener('keydown', e=>{
+  if((e.metaKey||e.ctrlKey) && e.key==='k'){ e.preventDefault(); document.getElementById('searchInput').focus(); }
+});
+</script>
+</body>
+</html>
